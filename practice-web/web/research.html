@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3eee3">
+  <title>Pricing Research Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/research.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap top-inner">
+      <a href="/trade" class="brand"><span class="mark" aria-hidden="true">T</span><span>TESA Market</span></a>
+      <nav aria-label="เมนูหลัก">
+        <a class="nav-link" href="/trade">← เครื่องมือหลัก</a>
+        <a class="nav-link" href="#papers">งานวิจัย</a>
+        <a class="nav-link" href="#bid">เส้นโอกาสขาย</a>
+        <a class="nav-link" href="#dp">DP สต็อก</a>
+        <a class="nav-link" href="#bandit">Bandit</a>
+        <a class="nav-link" href="#score">คะแนนสูงสุด</a>
+      </nav>
+      <span class="local"><i></i> คำนวณบนเครื่องนี้ · ไม่ส่งตลาดจริง</span>
+    </div>
+  </header>
+  <main class="wrap">
+    <div id="notice" role="status" aria-live="polite" hidden></div>
+    <div class="intro">
+      <div><p class="eyebrow">RESEARCH LAB · หน้าแยกจากเครื่องมือหลัก</p><h1>ใช้งานวิจัยหา k* และคะแนนสูงสุด</h1>
+        <p>ตลาดนี้คือการยื่นซองขายแบบปิด (sealed-offer) ที่สต็อกจำกัดและเวลาจำกัด · ปัญหาเดียวกับที่งานวิจัยด้าน dynamic pricing และ TAC SCM ศึกษามาแล้ว</p></div>
+    </div>
+
+    <section id="papers">
+      <div class="paper-grid">
+        <article class="panel paper">
+          <p class="eyebrow">TAC SCM · Trading Agent Competition</p>
+          <h2>ประมูลรับคำสั่งซื้อ: ทำนายโอกาสชนะตามราคา</h2>
+          <p><b>แนวคิด</b> ใน TAC SCM ลูกค้าส่ง RFQ และผู้เสนอราคาถูกสุดที่ผ่านเงื่อนไขชนะ · agent ที่ชนะเลิศ (เช่น TacTex ของ Pardoe &amp; Stone) เรียนรู้ความน่าจะเป็นที่จะชนะเป็นฟังก์ชันของราคาจากผลที่ผ่านมา แล้วเลือกราคาที่ทำกำไรคาดหวังสูงสุด</p>
+          <p><b>ใช้กับเกมนี้</b> RFQ + ซองปิด + ผู้ซื้อเรียงจาก k ต่ำสุด = โครงสร้างเดียวกัน · ฟิต P(ขายได้ | k) จากผลทุกซอง แล้วเลือก k* = argmax (k − V) × P(k)</p>
+          <a href="#bid" class="tool-link">เครื่องมือ 1 · เส้นโอกาสขาย →</a>
+        </article>
+        <article class="panel paper">
+          <p class="eyebrow">Gallego &amp; van Ryzin (1994) · Management Science</p>
+          <h2>Dynamic pricing of inventories: ราคาขึ้นกับสต็อกและเวลาที่เหลือ</h2>
+          <p><b>แนวคิด</b> สต็อกจำกัด เวลาจำกัด ของเหลือมีมูลค่าซาก · ราคาที่ดีที่สุดขึ้นกับ (ของเหลือ, เวลาเหลือ) และ "ต้นทุน" ของการขายตอนนี้คือมูลค่าส่วนเพิ่มของการเก็บไว้ ΔV</p>
+          <p><b>ใช้กับเกมนี้</b> ซาก = 0.80 × TV · แก้ DP ตรงๆ ได้ k* ของทุกสถานะ (กระสอบเหลือ, รอบ) · ΔV คือค่า V ที่ planner ใช้ · ช่วงต้นเกมถือของได้ ขายแพงได้ · ช่วงท้าย V → 0.80</p>
+          <a href="#dp" class="tool-link">เครื่องมือ 2 · DP สต็อก →</a>
+        </article>
+        <article class="panel paper">
+          <p class="eyebrow">Kleinberg &amp; Leighton (2003) · Besbes &amp; Zeevi (2009)</p>
+          <h2>Online posted-price: ตั้งราคาโดยไม่รู้เส้นอุปสงค์</h2>
+          <p><b>แนวคิด</b> ไม่รู้ว่าผู้ซื้อยอมจ่ายเท่าไร ต้อง "ลอง" ราคาเพื่อเรียนรู้ไปพร้อมกับทำเงิน (learn-and-earn) · การสำรวจคุ้มที่สุดช่วงต้นเมื่อยังเหลือเวลาใช้ความรู้นั้น</p>
+          <p><b>ใช้กับเกมนี้</b> เหตุผลของซองทดลอง 1 กระสอบในรอบ 1–2 · เพดานเปลี่ยนตาม RFQ จึงต้องเรียนต่อเนื่อง ไม่ใช่ลองครั้งเดียว</p>
+          <a href="#bandit" class="tool-link">เครื่องมือ 3 · Bandit →</a>
+        </article>
+        <article class="panel paper">
+          <p class="eyebrow">Ferreira, Simchi-Levi &amp; Wang (2018) · Operations Research</p>
+          <h2>Thompson sampling สำหรับ revenue management</h2>
+          <p><b>แนวคิด</b> เก็บความเชื่อเป็นการแจกแจง (Beta) ของโอกาสขายในแต่ละราคา สุ่มจากความเชื่อแล้วเลือกราคาที่ดีที่สุดในตัวอย่างนั้น · สำรวจเองโดยอัตโนมัติตามความไม่แน่นอน และรองรับข้อจำกัดสต็อก</p>
+          <p><b>ใช้กับเกมนี้</b> แต่ละ k คือ "แขน" · รางวัล = (k − V) × P(ขาย) · เทียบ Thompson กับ UCB และแบบโลภ (greedy)</p>
+          <a href="#bandit" class="tool-link">เครื่องมือ 3 · Bandit →</a>
+        </article>
+        <article class="panel paper">
+          <p class="eyebrow">Phillips (2005) · Talluri &amp; van Ryzin (2004)</p>
+          <h2>Customized pricing / bid-response และ revenue management</h2>
+          <p><b>แนวคิด</b> ในการเสนอราคาแบบรายดีล ใช้เส้น bid-response (มักเป็น logistic) แทนอุปสงค์ · มาร์จินคาดหวัง = (ราคา − ต้นทุนโอกาส) × โอกาสชนะ</p>
+          <p><b>ใช้กับเกมนี้</b> ต้นทุนโอกาส = V ไม่ใช่ต้นทุนผลิต · ขายต่ำกว่า 0.80 × TV เท่ากับขาดทุนเทียบไม่ขาย</p>
+          <a href="#score" class="tool-link">คะแนนสูงสุด →</a>
+        </article>
+        <article class="panel paper note">
+          <p class="eyebrow">ข้อควรรู้</p>
+          <h2>โมเดลไม่ใช่ตลาดจริง</h2>
+          <p>ทุกเครื่องมือในหน้านี้เป็นการคำนวณจากข้อมูลที่กรอก · สมมติฐานสำคัญ: เพดานต่อ RFQ เป็นช่วง [ต่ำ, สูง], ขายแต่ละกระสอบเป็นอิสระต่อกัน · ใช้ผลรอบจริงอัปเดตค่าเสมอ</p>
+          <p class="hint">ชื่อและปีของงานวิจัยให้ไว้เพื่อค้นต่อ ควรตรวจรายละเอียดจากต้นฉบับก่อนอ้างอิงในรายงาน</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel" id="bid">
+      <div class="panel-head"><h2>เครื่องมือ 1 · เส้นโอกาสขาย P(ขาย | k) แบบ TAC SCM</h2><span class="pill" id="bid-pill"></span></div>
+      <p class="hint">พิมพ์ประวัติทีละบรรทัด: <code>k ผล</code> เช่น <code>1.06 OUTBID</code> หรือ <code>103 ACCEPTED</code> (k เป็น % ก็ได้) · ACCEPTED/PARTIAL = ขายได้, ABOVE_LIMIT/OUTBID = ขายไม่ได้</p>
+      <div class="lab-grid">
+        <div>
+          <label>ประวัติซอง (k ผล)<textarea id="history" rows="10" spellcheck="false">1.25 ABOVE_LIMIT
+0.97 ACCEPTED
+1.06 OUTBID
+0.97 ABOVE_LIMIT
+0.97 ACCEPTED
+0.97 ABOVE_LIMIT</textarea></label>
+          <div class="actions tight"><button type="button" class="secondary" id="from-r1">ดึงจากหน้าแข่งรอบ 1</button>
+            <button type="button" class="secondary" id="clear-history">ล้าง</button></div>
+          <div class="form-grid" id="bid-form">
+            <label>ความเชื่อตั้งต้น ขายได้ที่ k (%)<input name="lo" type="number" step="any" value="95"></label>
+            <label>ขายไม่ได้ที่ k (%)<input name="hi" type="number" step="any" value="110"></label>
+            <label>ค่าถือไว้ V (%)<input name="reserve" type="number" step="any" value="80"></label>
+            <label>TV ของล็อต (ถ้าต้องการราคา)<input name="tv" type="number" step="any" value="119.75"></label>
+            <label class="check wide"><input type="checkbox" name="use_prior" checked> ใช้ความเชื่อตั้งต้น (ช่วยตอนข้อมูลน้อย)</label>
+          </div>
+        </div>
+        <div><output id="bid-result"></output><div id="bid-chart" class="chart"></div></div>
+      </div>
+    </section>
+
+    <section class="panel" id="dp">
+      <div class="panel-head"><h2>เครื่องมือ 2 · DP สต็อก (Gallego &amp; van Ryzin)</h2><span class="pill" id="dp-pill"></span></div>
+      <p class="hint">หา k ที่ดีที่สุดของทุกสถานะ (กระสอบที่เหลือ × รอบ) และมูลค่าส่วนเพิ่ม ΔV ของกระสอบถัดไป = ค่า V ที่ควรใช้ตอนหา k*</p>
+      <div class="form-grid four" id="dp-form">
+        <label>กระสอบทั้งหมด<input name="bags" type="number" min="1" max="80" value="26"></label>
+        <label>จำนวนรอบ<input name="rounds" type="number" min="1" max="12" value="6"></label>
+        <label>ขายได้ต่อรอบสูงสุด (กระสอบ)<input name="per_round" type="number" min="1" max="80" value="8" title="วันที่ 18: capacity_left_kg ÷ 60"></label>
+        <label>รอบเทศกาล<input name="festival" type="text" placeholder="เช่น 3 4"></label>
+        <label>เพดานต่ำ (%)<input name="lo" type="number" step="any" value="102"></label>
+        <label>เพดานสูง (%)<input name="hi" type="number" step="any" value="112"></label>
+        <label>k ตัดคู่แข่ง (%)<input name="clear" type="number" step="any" placeholder="ว่าง = ไม่มี"></label>
+        <label>เทศกาลเพดาน + (จุด %)<input name="festival_shift" type="number" step="any" value="2"></label>
+      </div>
+      <output id="dp-result"></output>
+    </section>
+
+    <section class="panel" id="bandit">
+      <div class="panel-head"><h2>เครื่องมือ 3 · Bandit: Thompson sampling / UCB</h2><span class="pill" id="bandit-pill"></span></div>
+      <p class="hint">ใช้ประวัติเดียวกับเครื่องมือ 1 · แต่ละ k เป็น "แขน" · P(ดีที่สุด) = สัดส่วนที่แขนนั้นชนะเมื่อสุ่มจากความเชื่อ 4,000 ครั้ง</p>
+      <div class="form-grid four" id="bandit-form">
+        <label>k ต่ำสุด (%)<input name="arm_lo" type="number" step="any" value="94"></label>
+        <label>k สูงสุด (%)<input name="arm_hi" type="number" step="any" value="112"></label>
+        <label>ระยะห่าง (จุด %)<input name="arm_step" type="number" step="any" value="2"></label>
+        <label>น้ำหนักความเชื่อตั้งต้น<input name="prior_strength" type="number" step="any" value="2"></label>
+        <label>เพดานต่ำ (%)<input name="lo" type="number" step="any" value="95"></label>
+        <label>เพดานสูง (%)<input name="hi" type="number" step="any" value="110"></label>
+        <label>ค่าถือไว้ V (%)<input name="reserve" type="number" step="any" value="80"></label>
+      </div>
+      <output id="bandit-result"></output>
+    </section>
+
+    <section class="panel" id="score">
+      <h2>คะแนนสูงสุด: แต่ละการตัดสินใจมีค่ากี่คะแนน</h2>
+      <p class="hint">คะแนนขาย = 80 × (PR − 0.80) ÷ (PR ผู้นำ − 0.80) · คะแนนประเมิน = 20 × (1 − MAPE ÷ 10%)</p>
+      <div class="form-grid four" id="score-form">
+        <label>PR ของเรา (%)<input name="pr" type="number" step="any" value="93"></label>
+        <label>PR ผู้นำ (%)<input name="leader" type="number" step="any" value="95"></label>
+        <label>มูลค่า TV รวมทุกล็อต (บาท)<input name="total" type="number" step="any" value="137478"></label>
+        <label>MAPE (%)<input name="mape" type="number" step="any" value="0"></label>
+        <label>TV ล็อตที่จะขาย<input name="tv" type="number" step="any" value="119.75"></label>
+        <label>k ที่ขายได้ (%)<input name="k" type="number" step="any" value="104"></label>
+        <label>จำนวนกระสอบ<input name="bags" type="number" step="1" value="1"></label>
+      </div>
+      <output id="score-result"></output>
+      <ol class="checklist">
+        <li><b>ประเมิน 20 คะแนน</b> · ส่ง TV จากสูตรทันที (วันที่ 17 ตัวอย่างตรงของจริง → MAPE 0) · ไม่ส่ง = 0</li>
+        <li><b>ขายให้หมดก่อนจบ</b> · ทุกกระสอบที่ขายที่ k &gt; 0.80 เพิ่ม PR · รอบสุดท้าย V = 0.80</li>
+        <li><b>ล็อต TV สูงไป RFQ ที่ k สูง</b> · บาทต่อจุด k มากกว่า</li>
+        <li><b>เรียนรู้เร็ว</b> · ซองทดลองรอบ 1–2 + บันทึกผลทุกซองและสรุปตลาด</li>
+        <li><b>อย่าสู้ราคากันเอง</b> · RFQ ซื้อครบ = ติดคู่แข่ง ลด k ทีละน้อย · ซื้อไม่ครบ = ติดเพดาน ขยับเข้าใกล้ขอบล่างของเพดาน</li>
+        <li><b>ไม่เกินขอบบน</b> · ABOVE_LIMIT = เสียรอบ ไม่ได้อะไรเลย</li>
+      </ol>
+    </section>
+    <footer>อ้างอิงกติกาจากสไลด์วันที่ 17 · การคำนวณทั้งหมดอยู่บนเครื่องนี้ (research.py)</footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3eee3">
+  <title>TESA Market Practice</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+  <script type="module" src="/strategy.js"></script>
+  <script type="module" src="/sheet.js"></script>
+  <script type="module" src="/round1.js"></script>
+  <script type="module" src="/round2.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap top-inner">
+      <a href="/trade" class="brand"><span class="mark" aria-hidden="true">T</span><span>TESA Market</span></a>
+      <nav aria-label="เมนูหลัก">
+        <button type="button" data-view="market" aria-pressed="true">ตลาดฝึก</button>
+        <button type="button" data-view="tools" aria-pressed="false">ใบประเมินมูลค่า</button>
+        <button type="button" data-view="round1" aria-pressed="false">แข่งสด · manual</button>
+        <button type="button" data-view="round2" aria-pressed="false">แข่งรอบ 2–3 · agent</button>
+        <button type="button" data-view="strategy" aria-pressed="false">กลยุทธ์ k*</button>
+        <a class="nav-link" href="/research">งานวิจัย ↗</a>
+      </nav>
+      <span class="local"><i></i> คำนวณบนเครื่องนี้ · ไม่ส่งตลาดจริง</span>
+    </div>
+  </header>
+  <main class="wrap">
+    <div id="notice" role="status" aria-live="polite" hidden></div>
+    <section id="market" aria-label="ตลาดฝึก">
+      <div id="game"><p>กำลังเปิดตลาด…</p></div>
+    </section>
+    <section id="tools" hidden>
+      <div class="intro compact">
+        <div><p class="eyebrow">ใบประเมินมูลค่า · คิดทีละล็อต หรือทุกล็อตพร้อมกัน</p><h1>ประเมินล็อต → TV → k*</h1>
+          <p>พิมพ์ช่องเหลือง ค่าที่เหลือคำนวณเอง · TV = 120 × G × M × S · ปัดเฉพาะ TV ที่ส่ง</p></div>
+      </div>
+      <section class="panel sheet-panel">
+        <div class="panel-head"><h2>ชีต "ประเมินล็อต"</h2>
+          <div class="actions tight">
+            <button type="button" class="secondary" data-sheet="add">+ เพิ่มล็อต</button>
+            <button type="button" class="secondary" data-sheet="remove">− ลบแถวล่าง</button>
+            <button type="button" class="secondary" data-sheet="example">ใส่ตัวอย่างสไลด์</button>
+            <button type="button" class="secondary" data-sheet="clear">ล้าง</button>
+          </div></div>
+        <p class="hint">คัดลอกจากการ์ด "ล็อตของฉัน": ความชื้น · เมล็ดเสีย · ขนาด · กระสอบ (ตัวเลขหลังคำว่า "จาก") ไม่ต้องพิมพ์ % · กดแถวเพื่อดูวิธีคิด</p>
+        <div class="table-scroll"><table class="sheet" id="sheet"></table></div>
+        <div id="sheet-detail"></div>
+      </section>
+      <div class="tool-grid">
+        <section class="panel">
+          <div class="panel-head"><h2>ส่งผลประเมินมูลค่า</h2><span class="hint-right">ส่งได้ครั้งเดียว ก่อนตลาดเปิด</span></div>
+          <p class="hint">ค่าที่ต้องพิมพ์ลงช่อง "มูลค่าที่ประเมิน (บาท/กก.)" ในหน้า /trade</p>
+          <div id="sheet-appraisal"><p class="hint">กรอกล็อตให้ครบก่อน</p></div>
+        </section>
+        <section class="panel">
+          <h2>ตั้งค่าการหา k*</h2>
+          <p class="hint">ค่าว่างใช้ช่วงเพดานตั้งต้น · กรอก k ที่เคยผ่าน/ถูกตัด (%) จากผลรอบก่อนเพื่อให้แม่นขึ้น</p>
+          <div class="form-grid four" id="sheet-settings">
+            <label>ค่าถือไว้ V (%)<input name="reserve" type="number" step="any" value="80" title="80 = ขายรอบสุดท้าย"></label>
+            <label>ขั้นต่ำ k (%)<input name="floor" type="number" step="any" value="85"></label>
+            <label>PR ผู้นำ (%)<input name="leader_pr" type="number" step="any" placeholder="ถ้าทราบ"></label>
+            <label class="check"><input type="checkbox" name="festival" value="1"> รอบเทศกาล</label>
+            <label>COM เคยผ่าน (%)<input name="COMMERCIAL.passed" type="number" step="any"></label>
+            <label>COM ถูกตัด (%)<input name="COMMERCIAL.cut" type="number" step="any"></label>
+            <label>INS เคยผ่าน (%)<input name="INSTANT.passed" type="number" step="any"></label>
+            <label>INS ถูกตัด (%)<input name="INSTANT.cut" type="number" step="any"></label>
+            <label class="check"><input type="checkbox" name="specialty" value="1"> มีผู้ซื้อ Specialty</label>
+            <label>SPEC เคยผ่าน (%)<input name="SPECIALTY.passed" type="number" step="any"></label>
+            <label>SPEC ถูกตัด (%)<input name="SPECIALTY.cut" type="number" step="any"></label>
+          </div>
+        </section>
+      </div>
+      <section class="panel">
+        <div class="panel-head"><h2>ตารางได้ PR สูงสุด</h2><span id="sheet-pr" class="pill"></span></div>
+        <p class="hint">ทุกล็อต × ผู้ซื้อที่ผ่านสเปก · k* = ค่า k ที่ทำให้ (k − V) × โอกาสขายสูงสุด · ราคาปัดลงเพื่อไม่ข้ามเพดาน</p>
+        <div id="sheet-plan"><p class="hint">กรอกทุกล็อตให้ครบ ตารางจะขึ้นเอง</p></div>
+      </section>
+      <section class="panel">
+        <h2>คำนวณ PR และคะแนน</h2>
+        <p class="hint">ใช้มูลค่าก่อนปัดของล็อตทั้งหมดและกระสอบที่เหลือ คะแนนขายที่ PR สูงกว่า 0.80 ต้องมี PR ผู้นำเพื่อเทียบ</p>
+        <form id="score">
+          <div class="form-grid four">
+            <label>TV รวม (บาท)<input name="lot_value" type="number" min="0" step="any" required></label>
+            <label>รายได้ขายแล้ว (บาท)<input name="revenue" type="number" min="0" step="any" required></label>
+            <label>TV ของเหลือ (บาท)<input name="remaining_value" type="number" min="0" step="any" required></label>
+            <label>PR ผู้นำ (% ถ้าทราบ)<input name="leader_pr" type="number" min="0" step="any"></label>
+          </div>
+          <details id="estimate-inputs">
+            <summary>เพิ่มข้อมูลที่ส่งประเมิน 4 ล็อต</summary>
+            <div id="score-lots" class="table-scroll"></div>
+          </details>
+          <button type="submit">คำนวณคะแนน</button>
+        </form>
+        <output id="score-result" aria-live="polite"></output>
+      </section>
+    </section>
+    <section id="round1" hidden>
+      <div class="intro compact">
+        <div><p class="eyebrow">แข่งสดกับทีมจริง · ยื่นซองด้วยมือ · ใช้ได้ทุกวันแข่ง</p><h1>ห้องควบคุมการขาย</h1>
+          <p>พิมพ์ข้อมูลจาก /trade ลงที่นี่ แล้วพิมพ์ราคาที่แนะนำกลับในหน้า /trade ด้วยมือ · หน้านี้ไม่ส่งข้อมูลไปตลาดจริง</p></div>
+        <div class="phase-box"><span class="phase-label" id="r1-phase">รอบ 1/6</span><span class="timer" id="r1-timer">08:00</span>
+          <div class="actions tight"><button type="button" class="secondary" data-r1="timer">เริ่ม/หยุด 8 นาที</button></div></div>
+      </div>
+      <div class="metrics" id="r1-metrics"></div>
+      <section class="panel sheet-panel">
+        <div class="panel-head"><h2>ล็อตของฉัน</h2>
+          <div class="actions tight"><button type="button" class="secondary" data-r1="import">ดึงจากใบประเมินมูลค่า</button>
+          <button type="button" class="secondary" data-r1="addlot">+ ล็อต</button></div></div>
+        <p class="hint">กระสอบ = ตัวเลขหลังคำว่า "จาก" · ตั้งครั้งเดียวตอนประเมิน</p>
+        <div class="table-scroll"><table class="sheet" id="r1-lots"></table></div>
+        <div class="form-grid four r1-game">
+          <label>จำนวนรอบขาย<input id="r1-rounds" type="number" min="1" max="12" value="6"></label>
+          <label>รอบเทศกาล (เช่น 3 4)<input id="r1-festival" type="text" placeholder="ว่าง = ไม่มี"></label>
+          <label>ขั้นต่ำ k (%)<input id="r1-floor" type="number" step="any" value="85"></label>
+          <label>ความอดทน 0–1<input id="r1-patience" type="number" step="0.1" min="0" max="1" value="0.6"></label>
+        </div>
+      </section>
+      <section class="panel" id="r1-strategy">
+        <div class="panel-head"><h2>กลยุทธ์รอบนี้</h2><span class="pill" id="r1-strategy-pill"></span></div>
+        <p class="hint">ทุกช่องว่างได้ = ให้ระบบเลือกเอง · ค่าเริ่มต้น "สมดุล" ชนะหรือเสมอทุกสถานการณ์คู่แข่งที่จำลอง (56 ทีม)</p>
+        <div class="form-grid four">
+          <label class="check big"><input type="checkbox" data-c="sell_round" checked> ขายรอบนี้ <small>(เอาออก = ไม่ขาย ถือทุกล็อต)</small></label>
+          <label>ความเสี่ยง<select data-c="risk">
+            <option value="balanced">สมดุล (แนะนำ)</option><option value="safe">ปลอดภัย · โอกาสขาย ≥ 85%</option>
+            <option value="aggressive">กล้าเสี่ยง · ถือของรอราคา</option></select></label>
+          <label>ขายรอบนี้อย่างน้อย (กระสอบ)<input data-c="bags_min" type="number" min="0" placeholder="อัตโนมัติ"></label>
+          <label>ขายรอบนี้ไม่เกิน (กระสอบ)<input data-c="bags_max" type="number" min="0" placeholder="อัตโนมัติ"></label>
+          <label>เป้า PR (%)<input data-c="target_pr" type="number" step="any" placeholder="เช่น 95"></label>
+          <label class="check"><input type="checkbox" data-c="target_enforce"> ห้ามขายต่ำกว่า k ที่เป้าต้องการ</label>
+          <label class="check"><input type="checkbox" data-c="ladder"> ขั้นบันได: 1 กระสอบชิดเพดาน</label>
+          <label>ตัดราคาสุ่ม ≤ (จุด %)<input data-c="undercut" type="number" step="0.1" min="0" placeholder="0 = ปิด · ลอง 0.4"></label>
+          <label>ขายได้ต่อรอบสูงสุด (กระสอบ)<input data-c="cap_bags" type="number" min="1" placeholder="วันที่ 18: capacity ÷ 60"></label>
+          <label>เว้นขอบสเปก เสีย (จุด %)<input data-c="margin_defect" type="number" step="0.05" min="0" placeholder="0 · วันที่ 18 ลอง 0.2"></label>
+          <label>เว้นขอบสเปก ชื้น (จุด %)<input data-c="margin_moisture" type="number" step="0.05" min="0" placeholder="0 · วันที่ 18 ลอง 0.15"></label>
+          <label>เลขทีม (สุ่มราคาไม่ซ้ำทีมอื่น)<input data-c="seed" type="number" min="0" value="18"></label>
+        </div>
+        <div id="r1-target"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2 id="r1-rfq-title">คำขอซื้อ (RFQ) รอบนี้</h2>
+          <div class="actions tight"><button type="button" class="secondary" data-r1="addrfq">+ RFQ</button>
+          <button type="button" data-r1="plan">คำนวณราคาแนะนำ</button></div></div>
+        <p class="hint">RFQ = ผู้ซื้อประกาศว่าต้องการกี่กระสอบ และคุณภาพแบบไหน · แถวล่างของแต่ละ RFQ: ข้าม · ราคาของเรา · จำกัดกระสอบ · ราคาคู่แข่งที่เห็น</p>
+        <div id="r1-rfqs"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>ซองที่ควรยื่น (พิมพ์ลง /trade)</h2><span class="pill" id="r1-round-pill"></span></div>
+        <div id="r1-plan"><p class="hint">ใส่ RFQ แล้วกด "คำนวณราคาแนะนำ"</p></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>ผลรอบนี้ (หลังจับคู่)</h2>
+          <div class="actions tight"><button type="button" class="secondary" data-r1="fillresults">สร้างแถวจากซองที่แนะนำ</button>
+          <button type="button" class="secondary" data-r1="addresult">+ ผล</button></div></div>
+        <p class="hint">คัดลอกจากการ์ด "ผลรอบล่าสุด" และ "ภาพรวมตลาดรอบล่าสุด" ยิ่งกรอกครบ รอบหน้ายิ่งแม่น</p>
+        <div id="r1-results"></div>
+        <h3 class="sub">ภาพรวมตลาดรอบนี้</h3>
+        <div id="r1-market"></div>
+        <div class="actions"><button type="button" data-r1="next">บันทึกผลและไปรอบถัดไป</button>
+          <button type="button" class="secondary" data-r1="back">กลับรอบก่อน</button></div>
+      </section>
+      <section class="panel">
+        <h2>เพดานที่เรียนรู้ต่อผู้ซื้อ</h2>
+        <div id="r1-beliefs"><p class="hint">ยังไม่มีผล</p></div>
+        <h3 class="sub">คู่แข่ง (จากภาพรวมตลาดที่กรอก)</h3>
+        <div id="r1-intel"><p class="hint">กรอก "ภาพรวมตลาด" หลังจับคู่ ระบบจะสรุปว่าผู้ซื้อไหนคนแย่งเยอะ และคู่แข่งขายได้ที่ k เท่าไร</p></div>
+        <details><summary>ประวัติทุกรอบ / สำรองข้อมูล (ข้อความ)</summary>
+          <div id="r1-history"></div>
+          <textarea id="r1-text" rows="10" spellcheck="false" readonly></textarea>
+          <div class="actions"><button type="button" class="secondary" data-r1="reset">เริ่มเกมใหม่ (ล้างทุกรอบ)</button></div></details>
+      </section>
+    </section>
+    <section id="round2" hidden>
+      <div class="intro compact">
+        <div><p class="eyebrow">แข่งรอบ 2 (18 พ.ย. · 30%) และรอบ 3 (20 พ.ย. · 50%) · agent ขายเอง</p><h1>ศูนย์ควบคุม agent</h1>
+          <p>ห้ามยื่น/แก้/ยกเลิกซองด้วยมือ · หน้านี้อ่าน log ของ agent และทดสอบกลยุทธ์บนเครื่องเท่านั้น</p></div>
+      </div>
+      <div class="tool-grid">
+        <section class="panel">
+          <h2>1 · ตั้งค่า .env</h2>
+          <p class="hint">ค่ากลยุทธ์อ่านจาก environment ไม่ต้องแก้โค้ด · key ไม่แสดงบนหน้านี้</p>
+          <div class="form-grid" id="r2-env">
+            <label>ความอดทน PATIENCE<input name="PATIENCE" type="number" step="0.1" min="0" max="1" value="0.6"></label>
+            <label>ขั้นต่ำ K_FLOOR<input name="K_FLOOR" type="number" step="0.01" value="0.85"></label>
+            <label>ซองทดลอง PROBES<select name="PROBES"><option value="1">เปิด</option><option value="0">ปิด</option></select></label>
+            <label>ใช้ LLM (event-llm เท่านั้น)<select name="USE_LLM"><option value="1">เปิด (ตรวจทาน)</option><option value="0">ปิด (กฎล้วน)</option></select></label>
+            <label class="wide">noise ตัวอย่าง SAMPLE_NOISE<input name="SAMPLE_NOISE" type="text" value="0.35,0.3"></label>
+          </div>
+          <pre class="code" id="r2-env-out"></pre>
+          <div id="r2-env-file"></div>
+        </section>
+        <section class="panel">
+          <h2>2 · ทดสอบก่อนแข่ง</h2>
+          <p class="hint">เล่น strategy.py ตัวจริงในเครื่องจับคู่ของผู้จัด (บนเครื่อง ไม่ต่อเน็ต) ต้องได้อันดับต้นและไม่มีซองถูกปฏิเสธ</p>
+          <div class="form-grid">
+            <label>กติกา<select id="r2-preset"><option value="day18">18/20 พ.ย. (noise · cap · Specialty)</option><option value="day17">17 พ.ย.</option></select></label>
+            <label>จำนวนเกม<input id="r2-games" type="number" min="1" max="10" value="3"></label>
+          </div>
+          <div class="actions"><button type="button" data-r2="preflight">ทดสอบ agent</button></div>
+          <div id="r2-preflight"></div>
+          <p class="hint">คำสั่งเต็มก่อนแข่ง:</p>
+          <pre class="code">.venv/Scripts/python -m pytest tests -q
+.venv/Scripts/python tools/arena.py --games 5
+.venv/Scripts/python agent/main.py</pre>
+        </section>
+      </div>
+      <section class="panel">
+        <div class="panel-head"><h2>3 · ติดตาม agent ระหว่างแข่ง</h2>
+          <div class="actions tight"><label class="check"><input type="checkbox" id="r2-auto" checked> รีเฟรชทุก 5 วินาที</label>
+          <button type="button" class="secondary" data-r2="refresh">รีเฟรช</button></div></div>
+        <p class="hint">อ่านจาก agent/logs/decisions.jsonl และ agent/logs/memory-*.json ของ agent/main.py (ไม่เรียก API ตลาด)</p>
+        <div class="metrics" id="r2-metrics"></div>
+        <div id="r2-problems"></div>
+        <h3 class="sub">ซองที่ agent ส่งล่าสุด</h3>
+        <div id="r2-sent"><p class="hint">ยังไม่มี log</p></div>
+        <h3 class="sub">ผลรอบล่าสุด</h3>
+        <div id="r2-results"></div>
+        <h3 class="sub">เพดานที่ agent เรียนรู้</h3>
+        <div id="r2-beliefs"></div>
+      </section>
+    </section>
+    <section id="strategy" hidden>
+      <div class="intro compact">
+        <div><p class="eyebrow">STRATEGY / k* = ราคา ÷ TV</p><h1>หาราคาที่ดีที่สุด</h1>
+          <p>ขายกระสอบหนึ่งที่ k ได้เพิ่ม (k − V) × TV × 60 บาท × โอกาสขายได้ · เลือก k ที่ทำให้ค่านี้สูงสุด</p></div>
+      </div>
+      <div class="tool-grid">
+        <section class="panel">
+          <h2>หา k* ของ RFQ หนึ่งใบ</h2>
+          <p class="hint">กรอกหลักฐานที่มี ช่องว่างใช้ค่าตั้งต้นของประเภทผู้ซื้อ (% เช่น 106 = 1.06 × TV)</p>
+          <form id="kstar" class="form-grid">
+            <label>ประเภทผู้ซื้อ<select name="buyer_type"><option value="COMMERCIAL">COMMERCIAL</option><option value="INSTANT">INSTANT</option><option value="SPECIALTY">SPECIALTY</option></select></label>
+            <label>TV ของล็อต (บาท/กก.)<input name="tv" type="number" step="any" min="0.01" value="119.75"></label>
+            <label>k สูงสุดที่เคยผ่านเพดาน (%)<input name="passed" type="number" step="any" placeholder="ACCEPTED/PARTIAL/OUTBID"></label>
+            <label>k ต่ำสุดที่เคย ABOVE_LIMIT (%)<input name="cut" type="number" step="any"></label>
+            <label>เพดานต่ำสุดที่เชื่อ (%)<input name="lo" type="number" step="any" placeholder="ค่าตั้งต้น"></label>
+            <label>เพดานสูงสุดที่เชื่อ (%)<input name="hi" type="number" step="any" placeholder="ค่าตั้งต้น"></label>
+            <label>k ตัดของคู่แข่ง (%)<input name="clear" type="number" step="any" placeholder="ว่าง = ไม่มีการแข่ง"></label>
+            <label>ค่าถือไว้ V (%)<input name="reserve" type="number" step="any" value="80" title="80 = รอบสุดท้าย"></label>
+            <label>กระสอบ<input name="bags" type="number" min="1" step="1" value="5"></label>
+            <label>ขั้นต่ำ k (%)<input name="floor" type="number" step="any" value="85"></label>
+            <label class="wide check"><input type="checkbox" name="festival" value="1"> รอบเทศกาล (เพดานสูงขึ้นเล็กน้อย)</label>
+            <div class="form-submit"><button type="submit">คำนวณ k*</button></div>
+          </form>
+          <output id="kstar-result" aria-live="polite"></output>
+          <div id="kstar-chart" class="chart"></div>
+        </section>
+        <section class="panel">
+          <h2>วางแผนทั้งรอบ (ใช้กับ /trade วันนี้)</h2>
+          <p class="hint">พิมพ์ล็อต RFQ และผลรอบก่อนตามรูปแบบ แล้วกดวางแผน จะได้ราคาที่ต้องพิมพ์ลงหน้าเว็บจริงด้วยมือ · ไม่มีการส่งข้อมูลไปตลาดจริง</p>
+          <form id="plan">
+            <label>ข้อมูลรอบ<textarea name="text" rows="16" spellcheck="false"></textarea></label>
+            <div class="form-grid four">
+              <label>ขั้นต่ำ k (%)<input name="floor" type="number" step="any" value="85"></label>
+              <label>ความอดทน 0–1<input name="patience" type="number" step="0.1" min="0" max="1" value="0.6"></label>
+              <label class="check"><input type="checkbox" name="probes" value="1" checked> ซองทดลอง 1 กระสอบ</label>
+              <div class="form-submit"><button type="submit">วางแผน</button></div>
+            </div>
+          </form>
+          <output id="plan-result" aria-live="polite"></output>
+          <details><summary>รูปแบบข้อมูล</summary><pre class="code">ROUNDS 6
+LOT A 5 1.79 13.23 14           LOT &lt;id&gt; &lt;กระสอบ&gt; &lt;เสีย%&gt; &lt;ชื้น%&gt; &lt;ตะแกรง&gt;
+ROUND 1
+RFQ R1-01 COM 9 สยามคอมเมิร์ซ    RFQ &lt;id&gt; &lt;COM|INS|SPEC&gt; &lt;กระสอบ&gt; &lt;ชื่อผู้ซื้อ&gt;
+SPEC R1-01 7 12.5 -              (เมื่อสเปกไม่ใช่ค่ามาตรฐาน)
+RESULT R1-01 A 125.00 ABOVE_LIMIT 0   &lt;rfq&gt; &lt;ล็อต&gt; &lt;ราคา&gt; &lt;ผล&gt; &lt;ขายได้กี่กระสอบ&gt;
+MARKET R1-01 9 6 14 118.5 126    &lt;rfq&gt; &lt;ขอ&gt; &lt;ซื้อได้&gt; [จำนวนซอง] [ราคาต่ำ] [ราคาสูง]
+ROUND 2 ...</pre></details>
+        </section>
+      </div>
+      <section class="panel">
+        <div class="panel-head"><h2>จำลองตลาด Monte-Carlo</h2><span class="pill">เพดานและคู่แข่งเป็นสมมติฐาน</span></div>
+        <p class="hint">เล่นซ้ำหลายเกมเพื่อเทียบกลยุทธ์ · ทำให้คู่แข่งเก่งขึ้นหรือลดเพดาน เพื่อดูว่ากลยุทธ์ยังทนไหม</p>
+        <form id="simulate">
+          <div class="form-grid four">
+            <label>วัน<select name="day"><option value="17">17 พ.ย. (2 ประเภท · 6 รอบ)</option><option value="18">18/20 พ.ย. (3 ประเภท · 8 รอบ · noise · cap)</option></select></label>
+            <label>จำนวนทีม<input name="teams" type="number" min="2" max="80" placeholder="20 / 56"></label>
+            <label>จำนวนเกม<input name="games" type="number" min="1" max="300" value="30"></label>
+            <label>เลื่อนเพดานผู้ซื้อ (จุด %)<input name="ceiling_shift" type="number" step="any" value="0"></label>
+            <label>คู่แข่ง k COM (%)<input name="rival_com" type="number" step="any" value="98"></label>
+            <label>คู่แข่ง k INS (%)<input name="rival_ins" type="number" step="any" value="91"></label>
+            <label>คู่แข่ง k SPEC (%)<input name="rival_spe" type="number" step="any" value="106"></label>
+            <label>คู่แข่งกระจาย ± (จุด %)<input name="rival_spread" type="number" step="any" value="4.5"></label>
+            <label>ลอง k คงที่ COM (%)<input name="fixed_com" type="number" step="any"></label>
+            <label>ลอง k คงที่ INS (%)<input name="fixed_ins" type="number" step="any"></label>
+            <label>ลอง k คงที่ SPEC (%)<input name="fixed_spe" type="number" step="any"></label>
+            <label>ความอดทน planner<input name="patience" type="number" step="0.1" min="0" max="1" value="0.6"></label>
+            <label>คู่แข่งเป็นใคร<select name="scenario">
+              <option value="bots">บอทของผู้จัด (ตลาดฝึก)</option>
+              <option value="naive">ทีมคน · ส่วนใหญ่ไม่รู้เพดาน</option>
+              <option value="learned">ทีมคน · ครึ่งหนึ่งเรียนรู้แล้ว</option>
+              <option value="edge">ทีมคน · ทุกทีมชิดเพดาน</option>
+              <option value="undercut">ทีมคน · สงครามตัดราคา</option>
+              <option value="mixed">ทีมคน · ผสมทุกแบบ</option></select></label>
+            <label>ความต้องการ ÷ ของ (×)<input name="demand_scale" type="number" step="0.1" min="0.2" max="3" value="1"></label>
+            <label>RFQ ต่อผู้ซื้อต่อรอบ<input name="rfqs_per_buyer" type="number" min="1" max="4" value="2"></label>
+            <label>ความเสี่ยง planner<select name="risk"><option value="balanced">สมดุล</option><option value="safe">ปลอดภัย</option><option value="aggressive">กล้าเสี่ยง</option></select></label>
+            <label class="check"><input type="checkbox" name="ladder" value="1"> ขั้นบันได</label>
+            <label>ตัดราคาสุ่ม ≤ (จุด %)<input name="undercut" type="number" step="0.1" min="0" value="0"></label>
+          </div>
+          <div class="actions"><button type="submit" value="simulate">เทียบกลยุทธ์</button>
+            <button type="submit" class="secondary" value="grid">ค้นหา k คงที่ที่ดีที่สุด (ตาราง)</button></div>
+        </form>
+        <output id="simulate-result" aria-live="polite"></output>
+      </section>
+      <section class="panel start-help">
+        <h2>สรุปกลยุทธ์</h2>
+        <ol>
+          <li><strong>ประเมินให้ตรง</strong> ส่ง TV จากสูตรทันที (ได้ 20 คะแนนเกือบเต็ม) · วันที่ 18 ตัวอย่างมี noise ใช้ค่ากลางที่เผื่อขอบเกรด</li>
+          <li><strong>k ไม่ใช่ราคา</strong> ผู้ซื้อเรียงซองตาม ราคา ÷ TV ล็อตแพงกับล็อตถูกจึงแข่งที่ k เดียวกัน แต่ล็อต TV สูงได้บาทต่อจุด k มากกว่า</li>
+          <li><strong>เพดานเป็นรายใบ</strong> เก็บ k ที่ผ่าน (ACCEPTED/PARTIAL/OUTBID) และ k ที่ถูกตัด (ABOVE_LIMIT) ต่อผู้ซื้อ แล้วเผื่อ ±2.5 จุด เพราะเพดานเปลี่ยนตาม RFQ</li>
+          <li><strong>ดู fill ratio</strong> RFQ ซื้อไม่ครบ = ติดเพดาน (ขยับราคาได้ถึงขอบ) · ซื้อครบ = ติดคู่แข่ง (ต้องต่ำกว่า k ตัด)</li>
+          <li><strong>V ค่าถือไว้</strong> รอบสุดท้าย V = 0.80 จึงขายทุกอย่างที่ k &gt; 0.80 · รอบต้น V สูงกว่า จึงไม่รีบขายถูก</li>
+          <li><strong>ซองทดลอง</strong> 1 กระสอบกลางช่วงเพดานใน 2 รอบแรก เพื่อเรียนรู้เพดานเร็ว</li>
+          <li><strong>ล็อตที่ไม่ผ่านสเปกใคร</strong> ปล่อยไว้ ได้ 0.80 × TV อัตโนมัติ อย่ายื่นต่ำกว่า 0.80</li>
+        </ol>
+      </section>
+    </section>
+    <footer>กติกาอ้างอิงสไลด์วันที่ 17 หน้า 5–13, 16, 18–24 และใบประเมินมูลค่า.xlsx</footer>
+  </main>
+</body>
+</html>
